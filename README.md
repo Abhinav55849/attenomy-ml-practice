@@ -1,6 +1,12 @@
-# Attenomy : Machine Learning Engineering Internship Starter Repository
+<h1 align='center'>📊 Attenomy Machine Learning Engineering Internship Starter Repository</h1>  
 
-Official starter repository, benchmark datasets, and task templates for the **Attenomy ML Engineering Internship Program**.
+<h3 align='center'><i>Official starter repository, benchmark datasets, and task templates for the Attenomy ML Engineering Internship Program.</i></h3> 
+
+> * **Organisation**: Attenomy
+> * **Authors**: 
+>   1. Saad Md. (#1, GitHub: @saad2134)
+>   2. Isaiah Ahmed (#2, GitHub: @iahcmd)
+> * **Classification**: Public. Any intern or any external person may use this.
 
 ---
 
