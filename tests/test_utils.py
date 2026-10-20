@@ -35,6 +35,12 @@ def test_load_data_valid_csv(tmp_path, sample_df):
     assert len(loaded) == 100
     assert list(loaded.columns) == list(sample_df.columns)
 
+def test_load_data_valid_json(tmp_path, sample_df):
+    json_file = tmp_path / "valid.json"
+    sample_df.to_json(json_file, orient="records")
+    loaded = load_data(str(json_file))
+    assert len(loaded) == 100
+    assert set(loaded.columns) == set(sample_df.columns)
 
 def test_load_data_missing_file():
     with pytest.raises(FileNotFoundError):

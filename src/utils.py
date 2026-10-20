@@ -13,10 +13,10 @@ import pandas as pd
 
 def load_data(path: str) -> pd.DataFrame:
     """
-    Ingests CSV or Parquet tabular datasets defensively.
+    Ingests CSV, JSON, or Parquet tabular datasets defensively.
 
     Args:
-        path: Path to CSV or Parquet file.
+        path: Path to a CSV, JSON, or Parquet file.
 
     Returns:
         pd.DataFrame containing ingested dataset.
@@ -34,10 +34,12 @@ def load_data(path: str) -> pd.DataFrame:
     ext = os.path.splitext(path)[1].lower()
     if ext == ".csv":
         df = pd.read_csv(path)
+    elif ext == ".json":
+        df = pd.read_json(path)
     elif ext in [".parquet", ".pq"]:
         df = pd.read_parquet(path)
     else:
-        raise ValueError(f"Unsupported file format '{ext}'. Expected .csv or .parquet")
+        raise ValueError(f"Unsupported file format '{ext}'. Expected .csv, .json or .parquet")
 
     if df.empty:
         raise ValueError(f"Dataset in {path} contains no rows.")
