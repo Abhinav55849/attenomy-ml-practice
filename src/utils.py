@@ -25,6 +25,14 @@ def load_data(path: str, required_columns: list[str] | None = None) -> pd.DataFr
     Raises:
         FileNotFoundError: If the specified file does not exist.
         ValueError: If file extension is unsupported or file is empty.
+
+    Examples:
+        >>> import os, tempfile
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     p = os.path.join(tmp, "demo.csv")
+        ...     _ = pd.DataFrame({"id": [1, 2], "os": [" iOS ", None]}).to_csv(p, index=False)
+        ...     load_data(p)["os"].tolist()
+        ['iOS', 'UNKNOWN']
     """
     if not os.path.exists(path):
         raise FileNotFoundError(f"Dataset path not found: {path}")
@@ -44,11 +52,11 @@ def load_data(path: str, required_columns: list[str] | None = None) -> pd.DataFr
 
     if df.empty:
         raise ValueError(f"Dataset in {path} contains no rows.")
-    if required_columns:
-            missing = [col for col in required_columns if col not in df.columns]
-            if missing:
-                raise ValueError(f"Missing required columns: {missing}")
 
+    if required_columns:
+        missing = [col for col in required_columns if col not in df.columns]
+        if missing:
+            raise ValueError(f"Missing required columns: {missing}")
 
     for col in df.columns:
         if pd.api.types.is_object_dtype(df[col]) or pd.api.types.is_string_dtype(df[col]):
@@ -56,7 +64,6 @@ def load_data(path: str, required_columns: list[str] | None = None) -> pd.DataFr
             is_blank = cleaned.str.lower().isin(["", "nan", "none"])
             cleaned = cleaned.where(~is_blank, "UNKNOWN")
             df[col] = cleaned.fillna("UNKNOWN").astype(object)
-
 
     return df
 
@@ -71,6 +78,12 @@ def summarize_dataframe_health(df: pd.DataFrame) -> dict[str, Any]:
     Returns:
         Dictionary containing shape, memory footprint, null counts,
         duplicate counts, and column data types.
+
+    Examples:
+        >>> df = pd.DataFrame({"a": [1, 2, 2], "b": ["x", "y", "y"]})
+        >>> health = summarize_dataframe_health(df)
+        >>> health["row_count"], health["column_count"], health["duplicate_rows"]
+        (3, 2, 1)
     """
     if not isinstance(df, pd.DataFrame):
         raise TypeError("Input must be a pandas DataFrame.")
@@ -106,6 +119,11 @@ def detect_outliers_iqr(df: pd.DataFrame, column: str, multiplier: float = 1.5) 
 
     Returns:
         Boolean pd.Series indicating whether each row is an outlier.
+
+    Examples:
+        >>> df = pd.DataFrame({"x": [1, 2, 3, 4, 100]})
+        >>> detect_outliers_iqr(df, "x").tolist()
+        [False, False, False, False, True]
     """
     if column not in df.columns:
         raise KeyError(f"Column '{column}' does not exist in DataFrame.")
@@ -146,6 +164,16 @@ def train_val_test_split(
 
     Returns:
         Tuple of (train_df, val_df, test_df).
+
+    Examples:
+        >>> df = pd.DataFrame({"x": range(20), "y": [0, 1] * 10})
+        >>> train, val, test = train_val_test_split(
+        ...     df, train_ratio=0.7, val_ratio=0.15, test_ratio=0.15,
+        ...     stratify_col="y", seed=1)
+        >>> len(train) + len(val) + len(test)
+        20
+        >>> set(train.index).isdisjoint(test.index)
+        True
     """
     total = train_ratio + val_ratio + test_ratio
     if not (0.999 <= total <= 1.001):
