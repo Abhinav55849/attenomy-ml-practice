@@ -105,3 +105,12 @@ def test_load_data_missing_required_columns(tmp_path, sample_df):
     sample_df.to_csv(csv_file, index=False)
     with pytest.raises(ValueError, match="Missing required columns"):
         load_data(str(csv_file), required_columns=["user_id", "not_a_column"])
+
+
+def test_load_data_cleans_string_columns(tmp_path):
+    csv_file = tmp_path / "messy.csv"
+    csv_file.write_text("user_id,device_os\nUSR_1,  iOS \nUSR_2,\nUSR_3,nan\n")
+    loaded = load_data(str(csv_file))
+    assert loaded["device_os"].tolist() == ["iOS", "UNKNOWN", "UNKNOWN"]
+
+

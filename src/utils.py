@@ -49,6 +49,15 @@ def load_data(path: str, required_columns: list[str] | None = None) -> pd.DataFr
             if missing:
                 raise ValueError(f"Missing required columns: {missing}")
 
+            
+    for col in df.columns:
+        if pd.api.types.is_object_dtype(df[col]) or pd.api.types.is_string_dtype(df[col]):
+            cleaned = df[col].astype("string").str.strip()
+            is_blank = cleaned.str.lower().isin(["", "nan", "none"])
+            cleaned = cleaned.where(~is_blank, "UNKNOWN")
+            df[col] = cleaned.fillna("UNKNOWN").astype(object)
+
+
     return df
 
 
