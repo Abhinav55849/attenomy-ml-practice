@@ -147,7 +147,7 @@ def train_val_test_split(
         
         # Group by label to preserve class distribution
         for _, group in df.groupby(stratify_col):
-            group_idx = group.index.to_numpy()
+            group_idx = group.index.to_numpy(copy=True)
             rng.shuffle(group_idx)
             
             g_n = len(group_idx)
