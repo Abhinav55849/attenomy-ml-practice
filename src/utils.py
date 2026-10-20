@@ -11,12 +11,13 @@ import numpy as np
 import pandas as pd
 
 
-def load_data(path: str) -> pd.DataFrame:
+def load_data(path: str, required_columns: list[str] | None = None) -> pd.DataFrame:
     """
     Ingests CSV, JSON, or Parquet tabular datasets defensively.
 
     Args:
         path: Path to a CSV, JSON, or Parquet file.
+        required_columns: Column names that must exist in the file (optional).
 
     Returns:
         pd.DataFrame containing ingested dataset.
@@ -43,6 +44,10 @@ def load_data(path: str) -> pd.DataFrame:
 
     if df.empty:
         raise ValueError(f"Dataset in {path} contains no rows.")
+    if required_columns:
+            missing = [col for col in required_columns if col not in df.columns]
+            if missing:
+                raise ValueError(f"Missing required columns: {missing}")
 
     return df
 

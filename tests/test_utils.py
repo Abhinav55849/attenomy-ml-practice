@@ -35,12 +35,14 @@ def test_load_data_valid_csv(tmp_path, sample_df):
     assert len(loaded) == 100
     assert list(loaded.columns) == list(sample_df.columns)
 
+
 def test_load_data_valid_json(tmp_path, sample_df):
     json_file = tmp_path / "valid.json"
     sample_df.to_json(json_file, orient="records")
     loaded = load_data(str(json_file))
     assert len(loaded) == 100
     assert set(loaded.columns) == set(sample_df.columns)
+
 
 def test_load_data_missing_file():
     with pytest.raises(FileNotFoundError):
@@ -96,3 +98,10 @@ def test_train_val_test_split_ratios_and_no_leakage(sample_df):
 def test_train_val_test_split_invalid_ratios(sample_df):
     with pytest.raises(ValueError, match="sum to 1.0"):
         train_val_test_split(sample_df, train_ratio=0.5, val_ratio=0.1, test_ratio=0.1)
+
+
+def test_load_data_missing_required_columns(tmp_path, sample_df):
+    csv_file = tmp_path / "valid.csv"
+    sample_df.to_csv(csv_file, index=False)
+    with pytest.raises(ValueError, match="Missing required columns"):
+        load_data(str(csv_file), required_columns=["user_id", "not_a_column"])
