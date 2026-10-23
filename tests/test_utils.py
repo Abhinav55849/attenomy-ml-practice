@@ -114,3 +114,15 @@ def test_load_data_cleans_string_columns(tmp_path):
     assert loaded["device_os"].tolist() == ["iOS", "UNKNOWN", "UNKNOWN"]
 
 
+def test_split_is_reproducible(sample_df):
+    a = train_val_test_split(sample_df, stratify_col="is_fraud", seed=42)
+    b = train_val_test_split(sample_df, stratify_col="is_fraud", seed=42)
+    for x, y in zip(a, b, strict=True):
+        assert x.index.equals(y.index)
+
+
+def test_split_preserves_stratification(sample_df):
+    overall = sample_df["is_fraud"].mean()
+    for part in train_val_test_split(sample_df, stratify_col="is_fraud", seed=42):
+        assert abs(part["is_fraud"].mean() - overall) < 0.07
+
