@@ -1,6 +1,6 @@
 # Intern Engineering Reflection Journal
-**Intern Name:** [Your Name]  
-**Repository:** [Your Personal Practice Repo URL]  
+**Intern Name:** Abhinav Singh  
+**Repository:** https://github.com/Abhinav55849/attenomy-ml-practice  
 **Cohort:** ML Engineer Internship (Cohort 2026)  
 
 ---

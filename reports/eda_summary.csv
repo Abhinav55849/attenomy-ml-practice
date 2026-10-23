@@ -1,0 +1,9 @@
+metric,value
+total_rows,25000.0
+training_rows,17500.0
+validation_rows,3750.0
+test_rows,3750.0
+training_anomaly_count,685.0
+training_anomaly_rate,0.039142857142857146
+number_of_hypothesis_tests,9.0
+bonferroni_alpha,0.005555555555555556
