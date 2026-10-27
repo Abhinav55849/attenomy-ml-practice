@@ -5,7 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
+from sklearn.compose import ColumnTransformer
 from sklearn.dummy import DummyClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
@@ -16,8 +19,15 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from sklearn.model_selection import StratifiedKFold, cross_validate
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-from src.pipeline import RANDOM_STATE, build_model_pipeline
+from src.pipeline import (
+    CATEGORICAL_FEATURES,
+    NUMERIC_FEATURES,
+    RANDOM_STATE,
+    build_model_pipeline,
+)
 
 SCORING = {
     "accuracy": "accuracy",
@@ -115,3 +125,122 @@ def save_results(
     path.parent.mkdir(parents=True, exist_ok=True)
     results.to_csv(path, index=False)
     return path
+
+
+def _build_ablation_pipeline(
+    numeric_features: list[str],
+    categorical_features: list[str],
+) -> Pipeline:
+    """Build a model pipeline for a specific feature configuration."""
+    numeric_pipeline = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler()),
+        ]
+    )
+
+    categorical_pipeline = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("encoder", OneHotEncoder(handle_unknown="ignore")),
+        ]
+    )
+
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("numeric", numeric_pipeline, numeric_features),
+            ("categorical", categorical_pipeline, categorical_features),
+        ],
+        remainder="drop",
+    )
+
+    classifier = LogisticRegression(
+        class_weight="balanced",
+        max_iter=1000,
+        random_state=RANDOM_STATE,
+    )
+
+    return Pipeline(
+        steps=[
+            ("preprocessor", preprocessor),
+            ("classifier", classifier),
+        ]
+    )
+
+
+def evaluate_feature_ablation_cv(
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+    n_splits: int = 5,
+) -> pd.DataFrame:
+    """Compare original features against engineered features using CV."""
+    original_numeric = [
+        "session_duration_sec",
+        "payload_size_kb",
+        "latency_ms",
+        "retry_count",
+    ]
+
+    engineered_numeric = [
+        "payload_per_second",
+        "log_payload_size",
+        "log_latency",
+        "has_retries",
+        "high_retry_count",
+        "has_error",
+        "hour_of_day",
+        "is_weekend",
+    ]
+
+    categorical = list(CATEGORICAL_FEATURES)
+
+    configurations = {
+        "original_features": original_numeric,
+        "engineered_features": original_numeric + engineered_numeric,
+    }
+
+    cv = StratifiedKFold(
+        n_splits=n_splits,
+        shuffle=True,
+        random_state=RANDOM_STATE,
+    )
+
+    results = []
+
+    for configuration, numeric_columns in configurations.items():
+        columns = numeric_columns + categorical
+        missing = sorted(set(columns) - set(X_train.columns))
+
+        if missing:
+            raise ValueError(
+                f"Missing columns for {configuration}: {missing}"
+            )
+
+        model = _build_ablation_pipeline(
+            numeric_features=numeric_columns,
+            categorical_features=categorical,
+        )
+
+        scores = cross_validate(
+            model,
+            X_train[columns],
+            y_train,
+            cv=cv,
+            scoring=SCORING,
+            n_jobs=1,
+            error_score="raise",
+        )
+
+        row = {
+            "configuration": configuration,
+            "feature_count": len(columns),
+        }
+
+        for metric in SCORING:
+            values = scores[f"test_{metric}"]
+            row[f"{metric}_mean"] = float(values.mean())
+            row[f"{metric}_std"] = float(values.std(ddof=1))
+
+        results.append(row)
+
+    return pd.DataFrame(results)
