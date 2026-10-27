@@ -44,3 +44,6 @@ Thumbs.db
 
 # Large generated data (keep raw benchmark, ignore generated exports if desired)
 # data/clean/*.parquet
+
+# Local backup files
+*.bak
