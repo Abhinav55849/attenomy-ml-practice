@@ -62,7 +62,7 @@ ml-engineer-internship/
 └── README.md
 ```
 
-*Note: The structure above highlights the main project files; additional scripts and reports are available in their respective directories.*
+*Note: This structure highlights the main project files. Additional scripts and reports may be available in their respective directories.*
 
 ## ⚙️ Machine Learning Workflow
 
@@ -70,7 +70,7 @@ ml-engineer-internship/
 
 The project builds on the telemetry data preparation and exploratory analysis work completed in the internship practice repository.
 
-The workflow includes data preparation, preprocessing, feature analysis, and training/validation/test data separation.
+The workflow includes data preparation, preprocessing, feature analysis, and training, validation, and test data separation.
 
 ### 2. Feature Engineering
 
@@ -118,6 +118,8 @@ Accuracy alone is insufficient for evaluating an imbalanced anomaly detection pr
 
 The confusion matrix summarizes the classification results at the selected decision threshold.
 
+![Confusion Matrix](reports/confusion_matrix.png)
+
 ## 🔎 Error Analysis
 
 The validation error analysis identified:
@@ -143,9 +145,15 @@ The analysis generates feature importance results, a SHAP summary plot, and indi
 
 ### Feature Importance
 
+![SHAP Feature Importance](reports/shap_feature_importance.png)
+
 ### SHAP Summary
 
+![SHAP Summary](reports/shap_summary.png)
+
 ### Individual Prediction Explanation
+
+![SHAP Waterfall Plot](reports/shap_waterfall_1.png)
 
 These visualizations help investigate why the model assigns different anomaly scores to individual records.
 
@@ -215,7 +223,7 @@ The latest recorded test run completed with **28 passed tests**.
 
 ## 🧪 Running Analysis Scripts
 
-Run the following commands from the repository root:
+Run the following commands from the repository root.
 
 ### Error Analysis
 
