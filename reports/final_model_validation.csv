@@ -1,0 +1,2 @@
+model,best_params,threshold,cv_pr_auc,validation_precision,validation_recall,validation_f1,validation_pr_auc,validation_roc_auc
+Logistic Regression,{'classifier__C': 10},0.85,0.23132848842683257,0.3090909090909091,0.3469387755102041,0.3269230769230769,0.27345426612952145,0.8482538172082601

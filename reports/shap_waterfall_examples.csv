@@ -1,0 +1,4 @@
+plot_number,row_index,actual_label,predicted_probability,threshold,predicted_label,prediction_type
+1,7084,1,0.9822270556947952,0.85,1,true_positive
+2,866,0,0.9025971995846876,0.85,1,false_positive
+3,1903,1,0.7413173976190421,0.85,0,false_negative

@@ -1,0 +1,2 @@
+model,brier_score,log_loss,calibration_bins
+Logistic Regression,0.14778317700202545,0.4929703625704217,10

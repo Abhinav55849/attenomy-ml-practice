@@ -24,7 +24,6 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from src.pipeline import (
     CATEGORICAL_FEATURES,
-    NUMERIC_FEATURES,
     RANDOM_STATE,
     build_model_pipeline,
 )
@@ -82,8 +81,8 @@ def evaluate_baselines_cv(
 
         for metric in SCORING:
             values = scores[f"test_{metric}"]
-            row[f"{metric}_mean"] = values.mean()
-            row[f"{metric}_std"] = values.std(ddof=1)
+            row[f"{metric}_mean"] = float(values.mean())
+            row[f"{metric}_std"] = float(values.std(ddof=1))
 
         results.append(row)
 
@@ -108,8 +107,12 @@ def evaluate_on_split(
 
     return {
         "accuracy": float(accuracy_score(y, predictions)),
-        "precision": float(precision_score(y, predictions, zero_division=0)),
-        "recall": float(recall_score(y, predictions, zero_division=0)),
+        "precision": float(
+            precision_score(y, predictions, zero_division=0)
+        ),
+        "recall": float(
+            recall_score(y, predictions, zero_division=0)
+        ),
         "f1": float(f1_score(y, predictions, zero_division=0)),
         "roc_auc": float(roc_auc_score(y, probabilities)),
         "pr_auc": float(average_precision_score(y, probabilities)),
@@ -173,7 +176,7 @@ def evaluate_feature_ablation_cv(
     y_train: pd.Series,
     n_splits: int = 5,
 ) -> pd.DataFrame:
-    """Compare original features against engineered features using CV."""
+    """Compare original features and engineered feature groups using CV."""
     original_numeric = [
         "session_duration_sec",
         "payload_size_kb",
@@ -181,23 +184,43 @@ def evaluate_feature_ablation_cv(
         "retry_count",
     ]
 
-    engineered_numeric = [
-        "payload_per_second",
-        "log_payload_size",
-        "log_latency",
-        "has_retries",
-        "high_retry_count",
-        "has_error",
-        "hour_of_day",
-        "is_weekend",
-    ]
+    engineered_groups = {
+        "ratio_features": [
+            "payload_per_second",
+        ],
+        "log_features": [
+            "log_payload_size",
+            "log_latency",
+        ],
+        "retry_error_features": [
+            "has_retries",
+            "high_retry_count",
+            "has_error",
+        ],
+        "time_features": [
+            "hour_of_day",
+            "is_weekend",
+        ],
+    }
 
     categorical = list(CATEGORICAL_FEATURES)
 
     configurations = {
         "original_features": original_numeric,
-        "engineered_features": original_numeric + engineered_numeric,
     }
+
+    for group_name, group_features in engineered_groups.items():
+        configurations[group_name] = original_numeric + group_features
+
+    all_engineered = [
+        feature
+        for group_features in engineered_groups.values()
+        for feature in group_features
+    ]
+
+    configurations["all_engineered_features"] = (
+        original_numeric + all_engineered
+    )
 
     cv = StratifiedKFold(
         n_splits=n_splits,
@@ -243,4 +266,18 @@ def evaluate_feature_ablation_cv(
 
         results.append(row)
 
-    return pd.DataFrame(results)
+    results_df = pd.DataFrame(results)
+
+    baseline = results_df.loc[
+        results_df["configuration"] == "original_features"
+    ].iloc[0]
+
+    results_df["roc_auc_delta"] = (
+        results_df["roc_auc_mean"] - baseline["roc_auc_mean"]
+    )
+
+    results_df["pr_auc_delta"] = (
+        results_df["pr_auc_mean"] - baseline["pr_auc_mean"]
+    )
+
+    return results_df
